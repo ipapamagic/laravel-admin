@@ -63,12 +63,15 @@ trait CanCascadeFields
     protected function addDependents(string $operator, $value, \Closure $closure)
     {
         $this->conditions[] = compact('operator', 'value', 'closure');
+        $form = ($this->nested_form == null) ? $this->form : $this->nested_form;
 
-        $this->form->cascadeGroup($closure, [
+        $form->cascadeGroup($closure, [
             'column' => $this->column(),
             'index'  => count($this->conditions) - 1,
             'class'  => $this->getCascadeClass($value),
         ]);
+    
+        
     }
 
     /**
@@ -81,6 +84,7 @@ trait CanCascadeFields
         $this->applyCascadeConditions();
     }
 
+
     /**
      * @param mixed $value
      *
@@ -92,7 +96,8 @@ trait CanCascadeFields
             $value = implode('-', $value);
         }
 
-        return sprintf('cascade-%s-%s', $this->getElementClassString(), $value);
+        // return sprintf('cascade-%s-%s', $this->getElementClassString(), $value);
+        return sprintf('cascade-%s-%s', $this->variables()['name'], $value);
     }
 
     /**
@@ -102,14 +107,16 @@ trait CanCascadeFields
      */
     protected function applyCascadeConditions()
     {
-        if ($this->form) {
-            $this->form->fields()
+        $form = ($this->nested_form == null) ? $this->form : $this->nested_form;
+        if ($form) {
+            $form->fields()
                 ->filter(function (Form\Field $field) {
                     return $field instanceof CascadeGroup
                         && $field->dependsOn($this)
                         && $this->hitsCondition($field);
                 })->each->visiable();
         }
+        
     }
 
     /**
@@ -168,7 +175,6 @@ trait CanCascadeFields
 
         $cascadeGroups = collect($this->conditions)->map(function ($condition) {
             return [
-                'class'    => $this->getCascadeClass($condition['value']),
                 'operator' => $condition['operator'],
                 'value'    => $condition['value'],
             ];
@@ -202,21 +208,30 @@ trait CanCascadeFields
         'oneNotIn': function(a, b) { return a.filter(v => b.includes(v)).length == 0; },
     };
     var cascade_groups = {$cascadeGroups};
-        
-    cascade_groups.forEach(function (event) {
-        var default_value = '{$this->getDefault()}' + '';
-        var class_name = event.class;
-        if(default_value == event.value) {
-            $('.'+class_name+'').removeClass('hide');
-        }
-    });
-    
-    $('{$this->getElementClassSelector()}').on('{$this->cascadeEvent}', function (e) {
+    $('{$this->getElementClassSelector()}').toArray().forEach(function(element) {
+        cascade_groups.forEach(function (event) {
+            var default_value = '{$this->getDefault()}' + '';
+
+            if(default_value == event.value) {
+                var formatedValue = event.value;
+                if (Array.isArray(event.value)) {
+                    formatedValue = event.value.join('-');
+                }
+                var group = $(document.getElementById('cascade-' + element.attr('name') + '-' + formatedValue));
+                group.removeClass('hide');
+            }
+        });
+    })
+    $(document).on("change",'{$this->getElementClassSelector()}', function (e) {
 
         {$this->getFormFrontValue()}
-
+        var element = $(this);
         cascade_groups.forEach(function (event) {
-            var group = $('div.cascade-group.'+event.class);
+            var formatedValue = event.value;
+            if (Array.isArray(event.value)) {
+                formatedValue = event.value.join('-');
+            }
+            var group = $(document.getElementById('cascade-' + element.attr('name') + '-' + formatedValue));
             if( operator_table[event.operator](checked, event.value) ) {
                 group.removeClass('hide');
             } else {

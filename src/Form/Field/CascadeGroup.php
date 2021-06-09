@@ -58,7 +58,7 @@ class CascadeGroup extends Field
     public function render()
     {
         return <<<HTML
-<div class="cascade-group {$this->dependency['class']} {$this->hide}">
+<div class="cascade-group {$this->dependency['class']} {$this->hide}" id="{$this->dependency['class']}">
 HTML;
     }
 
@@ -67,6 +67,11 @@ HTML;
      */
     public function end()
     {
-        $this->form->html('</div>')->plain();
+        if ($this->nested_form != null) {
+            $this->nested_form->html('</div>')->plain();    
+        }
+        else {
+            $this->form->html('</div>')->plain();
+        }
     }
 }

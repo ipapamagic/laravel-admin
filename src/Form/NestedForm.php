@@ -5,6 +5,7 @@ namespace Encore\Admin\Form;
 use Encore\Admin\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Form\Concerns\HandleCascadeFields;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -54,6 +55,7 @@ use Illuminate\Support\Collection;
  */
 class NestedForm
 {
+    use HandleCascadeFields;
     const DEFAULT_KEY_NAME = '__LA_KEY__';
 
     const REMOVE_FLAG_NAME = '_remove_';
@@ -340,6 +342,12 @@ class NestedForm
      */
     public function pushField(Field $field)
     {
+        if ($this->form instanceof WidgetForm) {
+            $field->setWidgetForm($this->form);
+        } else {
+            $field->setForm($this->form);
+        }
+        $field->setNestedForm($this);
         $this->fields->push($field);
 
         return $this;
@@ -447,12 +455,7 @@ class NestedForm
             /* @var Field $field */
             $field = new $className($column, array_slice($arguments, 1));
 
-            if ($this->form instanceof WidgetForm) {
-                $field->setWidgetForm($this->form);
-            } else {
-                $field->setForm($this->form);
-            }
-
+          
             $field = $this->formatField($field);
 
             $this->pushField($field);

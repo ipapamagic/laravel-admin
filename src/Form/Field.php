@@ -5,6 +5,7 @@ namespace Encore\Admin\Form;
 use Closure;
 use Encore\Admin\Admin;
 use Encore\Admin\Form;
+use Encore\Admin\Form\NestedForm;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Renderable;
@@ -174,6 +175,13 @@ class Field implements Renderable
      */
     protected $form = null;
 
+    /**
+     * Parent form.
+     *
+     * @var NestedForm
+     */
+    protected $nested_form = null;
+    
     /**
      * View for field to render.
      *
@@ -515,6 +523,21 @@ class Field implements Renderable
 
         return $this;
     }
+
+    /**
+     * Set NestedForm .
+     *
+     * @param NestedForm $form
+     *
+     * @return $this
+     */
+    public function setNestedForm(NestedForm $form)
+    {
+        $this->nested_form = $form;
+
+        return $this;
+    }
+    
 
     /**
      * Set width for field and label.
