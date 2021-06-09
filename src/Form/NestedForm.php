@@ -349,7 +349,7 @@ class NestedForm
         }
         $field->setNestedForm($this);
         $this->fields->push($field);
-
+        
         return $this;
     }
 

@@ -534,7 +534,8 @@ class Field implements Renderable
     public function setNestedForm(NestedForm $form)
     {
         $this->nested_form = $form;
-
+        //need to do this to prevent duplicate id
+        $this->id = 'nested_'. $form->getKey() . '_' . $this->id; 
         return $this;
     }
     
